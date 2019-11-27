@@ -5,31 +5,25 @@ enum TILE {
 }
 
 int scl = 10;
-float inc = 0.1;
+float i_min = 0.015, i_med = 0.16, i_max = 0.3;
+
+int w = width * 3, h = height * 2;
 float elevation_map[][];
 TILE  tiles_map[][];
-float mx=0,my=0,pa=0;
 
 void setup() {
   size(640, 360, P3D);
   noise = new OpenSimplexNoise(millis());
   noise_inc = new OpenSimplexNoise(millis());
-  mx=mouseX;
-  my=mouseY;
-  pa=PI/6;
+  
+  elevation_map = new float[w][h];
+  tiles_map = new TILE[w][h];
 }
 
 void draw() {
-  scale(0.2);
-  translate(width,height);
-  //translate();
-  pa += (mx - mouseX)/4;
-  //rotateX(PI/6);
-  rotateZ(pa);
-
-  //rotateZ(mouseY-my);
-  mx=mouseX;
-  my=mouseY;
+  scale(0.15);
+  translate(width,height/5);
+  rotateX(PI/12);
   
   background(164,164,164);
   fill(48,40,28);
@@ -37,31 +31,50 @@ void draw() {
   ambientLight(200, 180, 160);
   directionalLight(128, 128, 128, PI/2, PI/2, 0);
   
-  float dy = 0, dyy = 100;
-  for (int y = 0; y < height/scl*3; y++) {
-    float dx = 0, dxx = 100;
+  float dy = 0, dyy = 1000, dyyy= 10000;
+  for (int y = 0; y < h; y++) {
+    
     beginShape(QUAD_STRIP);
-    for (int x = 0; x <= width/scl*3; x++) {
-      float z = map((float)noise.eval(dx,dy),-1,1,-100,150);
-      float zz = map((float)noise.eval(dx,dy+inc/4),-1,1,-100,150);
-      float z1 = map((float)noise.eval(dxx,dyy),-1,1,-20,20);
-      float zz1 = map((float)noise.eval(dxx,dyy+inc*2),-1,1,-20,20);
-      float el = z + z1;
-      float elz = zz + zz1;
-      if (el < -20) { fill(64,80,185,128); el = -20; elz = -20; }
-      else if (el<40) { fill((abs(el-50)/el)*64,(abs(el-40)/el)*64,(abs(el-20)/el)*64); }
-      else if (el<60) { fill(abs(128),abs(128),abs(128)); }
-      else if (el<80) { fill(abs(64),abs(64),abs(64)); }
-      else { fill(24,24,24); }
+    
+    float dx = 0, dxx = 1000, dxxx = 10000;
+    for (int x = 0; x < w; x++) {
+      
+      float z = map((float)noise.eval(dx,dy),-1,1,-60,60);
+      float zz = map((float)noise.eval(dx,dy+i_min),-1,1,-60,60);
+      float z1 = map((float)noise.eval(dxx,dyy),-1,1,-10,10);
+      float zz1 = map((float)noise.eval(dxx,dyy+i_med),-1,1,-10,10);
+      float z2 = map((float)noise.eval(dxxx,dyyy),-1,1,-10,10);
+      float zz2 = map((float)noise.eval(dxxx,dyyy+i_max),-1,1,-10,10);
+      
+      float el = z + z1 + z2;
+      float elz = zz + zz1 + zz2;
+      
+      if (el < -10) { fill(64,80,200,142); el = -10; elz = -10; }
+      else { 
+        float red = map(abs(el),0,70,140,0);
+        float green = map(abs((15-el) < 0 ? (15-el)*2 : (15-el)),0,110,142,40);
+        float blue = map(abs(40-el),0,50,40,0);
+        if (el > 42) { red = green = blue = 200; }
+        else if (el > 27) { red = green = blue = 150 + el/12; }
+        fill(red,green,blue); 
+      }
+      
       vertex(x*scl,y*scl,el);
+      elevation_map[x][y] = el;
+      
       vertex(x*scl,(y+1)*scl,elz);
+      
       fill(48,40,28);
-      dx+=inc/4;
-      dxx+=inc*2;
+      
+      dx+=i_min;
+      dxx+=i_med;
+      dxxx+=i_max;
     }
-    dy+=inc/4;
-    dyy+=inc*2;
+    dy+=i_min;
+    dyy+=i_med;
+    dyyy+=i_max;
+    
     endShape();
   }
-  //if (dy > 0.1) noLoop();
+  noLoop();
 }
