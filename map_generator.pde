@@ -5,7 +5,7 @@ enum TILE {
 }
 
 int scl = 10;
-float i_min = 0.015, i_med = 0.16, i_max = 0.3;
+float i_min = 0.015, i_med1 = 0.08, i_med2 = 0.12, i_max = 0.25;
 
 int w = width * 3, h = height * 2;
 float elevation_map[][];
@@ -23,31 +23,33 @@ void setup() {
 void draw() {
   scale(0.15);
   translate(width,height/5);
-  rotateX(PI/12);
+  rotateX(PI/8);
   
-  background(164,164,164);
+  background(100,100,100);
   fill(48,40,28);
   noStroke();
   ambientLight(200, 180, 160);
   directionalLight(128, 128, 128, PI/2, PI/2, 0);
   
-  float dy = 0, dyy = 1000, dyyy= 10000;
+  float dy = 0, dyy = 1000, dyyy= 10000, dyyyy= 100000;
   for (int y = 0; y < h; y++) {
     
     beginShape(QUAD_STRIP);
     
-    float dx = 0, dxx = 1000, dxxx = 10000;
+    float dx = 0, dxx = 1000, dxxx = 10000, dxxxx = 100000;
     for (int x = 0; x < w; x++) {
       
       float z = map((float)noise.eval(dx,dy),-1,1,-60,60);
       float zz = map((float)noise.eval(dx,dy+i_min),-1,1,-60,60);
-      float z1 = map((float)noise.eval(dxx,dyy),-1,1,-10,10);
-      float zz1 = map((float)noise.eval(dxx,dyy+i_med),-1,1,-10,10);
+      float z1 = map((float)noise.eval(dxx,dyy),-1,1,-30,30);
+      float zz1 = map((float)noise.eval(dxx,dyy+i_med1),-1,1,-30,30);
       float z2 = map((float)noise.eval(dxxx,dyyy),-1,1,-10,10);
-      float zz2 = map((float)noise.eval(dxxx,dyyy+i_max),-1,1,-10,10);
+      float zz2 = map((float)noise.eval(dxxx,dyyy+i_med2),-1,1,-10,10);
+      float z3 = map((float)noise.eval(dxxxx,dyyyy),-1,1,-10,10);
+      float zz3 = map((float)noise.eval(dxxxx,dyyyy+i_max),-1,1,-10,10);
       
-      float el = z + z1 + z2;
-      float elz = zz + zz1 + zz2;
+      float el = z + z1 + z2 + z3;
+      float elz = zz + zz1 + zz2 + zz3;
       
       if (el < -10) { fill(64,80,200,142); el = -10; elz = -10; }
       else { 
@@ -67,14 +69,17 @@ void draw() {
       fill(48,40,28);
       
       dx+=i_min;
-      dxx+=i_med;
-      dxxx+=i_max;
+      dxx+=i_med1;
+      dxxx+=i_med2;
+      dxxxx+=i_max;
     }
     dy+=i_min;
-    dyy+=i_med;
-    dyyy+=i_max;
+    dyy+=i_med1;
+    dyyy+=i_med2;
+    dyyyy+=i_max;
     
     endShape();
   }
+  saveFrame("output/terrain.png");
   noLoop();
 }
