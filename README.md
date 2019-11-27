@@ -11,3 +11,6 @@ The map generation will use the OpenSimplex Noise java library written by Kurt S
 
 After functionality has been implemented in Processing, if will be rewritten from the ground up in C (or Go) as more of a challenge to myself.
 
+## Terrain Map Example
+
+![alt text](https://github.com/pierobson/map_generator/blob/master/output/terrain.png "Generated Terrain Map")
