@@ -8,18 +8,28 @@ int scl = 10;
 float inc = 0.1;
 float elevation_map[][];
 TILE  tiles_map[][];
+float mx=0,my=0,pa=0;
 
 void setup() {
   size(640, 360, P3D);
   noise = new OpenSimplexNoise(millis());
   noise_inc = new OpenSimplexNoise(millis());
+  mx=mouseX;
+  my=mouseY;
+  pa=PI/6;
 }
 
 void draw() {
   scale(0.2);
   translate(width,height);
-  rotateX(PI/6);
   //translate();
+  pa += (mx - mouseX)/4;
+  //rotateX(PI/6);
+  rotateZ(pa);
+
+  //rotateZ(mouseY-my);
+  mx=mouseX;
+  my=mouseY;
   
   background(164,164,164);
   fill(48,40,28);
@@ -38,8 +48,11 @@ void draw() {
       float zz1 = map((float)noise.eval(dxx,dyy+inc*2),-1,1,-20,20);
       float el = z + z1;
       float elz = zz + zz1;
-      if (el < 0) { fill(64,80,185,128); el = 0; elz = 0; }
-      else { fill(255/abs(el-40),255/abs(el-80),255/abs(el-120)); }
+      if (el < -20) { fill(64,80,185,128); el = -20; elz = -20; }
+      else if (el<40) { fill((abs(el-50)/el)*64,(abs(el-40)/el)*64,(abs(el-20)/el)*64); }
+      else if (el<60) { fill(abs(128),abs(128),abs(128)); }
+      else if (el<80) { fill(abs(64),abs(64),abs(64)); }
+      else { fill(24,24,24); }
       vertex(x*scl,y*scl,el);
       vertex(x*scl,(y+1)*scl,elz);
       fill(48,40,28);
@@ -50,5 +63,5 @@ void draw() {
     dyy+=inc*2;
     endShape();
   }
-  if (dy > 0.1) noLoop();
+  //if (dy > 0.1) noLoop();
 }
