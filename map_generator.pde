@@ -1,49 +1,62 @@
-OpenSimplexNoise noise1,noise2;
-float inc = 0.04;
-float dinc = 0.1;
-int cols,rows;
-int scale = 5;
+OpenSimplexNoise noise, noise_inc;
 
-void setup() {
-  size(640,360,P3D);
-  noise1 = new OpenSimplexNoise();
-  noise2 = new OpenSimplexNoise((long)random(Long.MAX_VALUE));
-  cols = width / 3 * scale / 2;
-  rows = height / (scale/2);
+enum TILE {
+ DIRT, GRASS, STONE, WATER 
 }
 
-float dy = 0, dyy = 0;
+int scl = 10;
+float inc = 0.13;
+float elevation_map[][];
+TILE  tiles_map[][];
+
+float get_inc(float x,float y) {
+ return map((float)noise_inc.eval(x,y),-1,1,0.0001,0.05); 
+}
+
+
+void setup() {
+  size(640, 360, P3D);
+  noise = new OpenSimplexNoise();
+  noise_inc = new OpenSimplexNoise();
+}
+
 void draw() {
-  lights();
-  directionalLight(180,100,100,PI/2,PI/4,-PI/4);
-  background(128,128,255);
-  fill(64,48,0); 
+  scale(0.2);
+  translate(width,height);
+  //rotateX(PI/4);
+  //translate();
+  
+  background(164,164,164);
+  fill(48,40,28);
   noStroke();
-  float dytemp = dy;
-  float dyytemp = dyy;
-  scale(0.5);
-  translate(width/2,height/2);
-  rotateX(PI/10);
-  translate(-3*width/2,-height/3);
+  ambientLight(200, 180, 160);
+  directionalLight(128, 128, 128, PI/2, PI/2, 0);
   
-    for (int y = 0; y < rows; y++) {
+  float dy = 0, dyy = 100;
+  for (int y = 0; y < height/scl*3; y++) {
+    float dx = 0, dxx = 100;
     beginShape(TRIANGLE_STRIP);
-    float dx = 0;
-    for (int x = 0; x < cols; x++) {
-      float z = map((float)noise1.eval(dx,dy),-1,1,-100,100);
-      float zz = map((float)noise2.eval(dx,dyy),-1,1,-20,20);
-      float z1 = map((float)noise1.eval(dx,dy+inc),-1,1,-100,100);
-      float zz1 = map((float)noise2.eval(dx,dyy+dinc),-1,1,-20,20);
-      vertex(x*scale,y*scale,z+zz);
-      vertex(x*scale,(y+1)*scale,z1+zz1);
-      dx += inc;
+    for (int x = 0; x <= width/scl*3; x++) {
+      float z = map((float)noise.eval(dx,dy),-1,1,-100,150);
+      float zz = map((float)noise.eval(dx,dy+(get_inc(0,dy))),-1,1,-100,150);
+      float z1 = map((float)noise.eval(dxx,dyy),-1,1,-20,20);
+      float zz1 = map((float)noise.eval(dxx,dyy+inc),-1,1,-20,20);
+      float el = z + z1;
+      float elz = zz + zz1;
+      if (el <= -20) { fill(64,80,185,128); el = -20; elz = -20; }
+      vertex(x*scl,y*scl,el);
+      vertex(x*scl,(y+1)*scl,elz);
+      fill(48,40,28);
+      if (x==0 && (y < 2)) {
+        float i = get_inc(dx,dy);
+        println("dy = " + dy + ", inc = " + i);
+      }
+      dx+=inc;
+      dxx+=inc*2;
     }
+    dy+=get_inc(0,dy);
+    dyy+=inc;
     endShape();
-    dy+=inc;
-    dyy+=dinc;
   }
-  
-  dy=dytemp-inc;
-  dyy=dyytemp-dinc;
-  //noLoop();
+  if (dy > 0.1) noLoop();
 }
